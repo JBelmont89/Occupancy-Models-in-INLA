@@ -8,6 +8,7 @@ format:
       source: false
       toggle: true
   pdf: default
+bibliography: references.bib
 ---
 
 This section describes the steps to fit occupancy models in [R-INLA](https://www.r-inla.org/) using simulated data (simulation details can be found in the `Data Simulation` tab).

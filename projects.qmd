@@ -11,6 +11,7 @@ format:
 editor: visual
 editor_options: 
   chunk_output_type: console
+bibliography: references.bib
 ---
 This section describes the steps to simulate occurrence data for fitting spatially explicit occupancy models in [R-INLA](https://www.r-inla.org/).
 

@@ -51,7 +51,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
@@ -413,12 +432,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section></section><section id="sec-STOM" class="level1"><h1>Simulate space-time occupancy data</h1>
-<p>Here we simulate data for a space-time occupancy model by defining a SPDE for the spatial domain and an autoregressive model of order 1, i.e.&nbsp;AR(1), for the time component (this is separable space-time model where the spatio-temporal covariance is defined by the Kronecker product of the covariances of the spatial and temporal random effects, see <span class="citation" data-cites="cameletti2012">[@cameletti2012]</span> for more details).</p>
-<p>We set a total of <code>nT = 5</code> discrete time points where the occupancy state changes. We can use the <code>book.rspde()</code> function available in the <code>spde-book-functions.R</code> file <span class="citation" data-cites="krainski2018">[@krainski2018]</span> to simulate <span class="math inline">\(t = 1,\ldots,nT\)</span> independent realizations of the random field<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Then, temporal correlation is introduced:</p>
+<p>Here we simulate data for a space-time occupancy model by defining a SPDE for the spatial domain and an autoregressive model of order 1, i.e.&nbsp;AR(1), for the time component (this is separable space-time model where the spatio-temporal covariance is defined by the Kronecker product of the covariances of the spatial and temporal random effects, see <span class="citation" data-cites="cameletti2012">(<a href="#ref-cameletti2012" role="doc-biblioref">Cameletti et al. 2012</a>)</span> for more details).</p>
+<p>We set a total of <code>nT = 5</code> discrete time points where the occupancy state changes. We can use the <code>book.rspde()</code> function available in the <code>spde-book-functions.R</code> file <span class="citation" data-cites="krainski2018">(<a href="#ref-krainski2018" role="doc-biblioref">Krainski et al. 2018</a>)</span> to simulate <span class="math inline">\(t = 1,\ldots,nT\)</span> independent realizations of the random field<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Then, temporal correlation is introduced:</p>
 <p><span class="math display">\[
 \omega(s_i,t) = \rho \ \omega(s_i,t-1) + \epsilon(s_i,t),
 \]</span></p>
-<p>where <span class="math inline">\(\pmb{\epsilon} \sim N(0,\Sigma = \sigma_{\epsilon}^2\tilde{\Sigma})\)</span> are the spatially correlated random effects with Matérn correlation function <span class="math inline">\(\tilde{\Sigma}\)</span> and <span class="math inline">\(\rho=0.7\)</span> is the autoregressive parameter (<span class="math inline">\(\sqrt{1-\rho^2}\)</span> is included so <span class="math inline">\(\omega(s_i,1)\)</span> comes from a <span class="math inline">\(N(0,\Sigma/(1-\rho^2)\)</span> stationary distribution; see <span class="citation" data-cites="cameletti2012">[@cameletti2012]</span>).</p>
+<p>where <span class="math inline">\(\pmb{\epsilon} \sim N(0,\Sigma = \sigma_{\epsilon}^2\tilde{\Sigma})\)</span> are the spatially correlated random effects with Matérn correlation function <span class="math inline">\(\tilde{\Sigma}\)</span> and <span class="math inline">\(\rho=0.7\)</span> is the autoregressive parameter (<span class="math inline">\(\sqrt{1-\rho^2}\)</span> is included so <span class="math inline">\(\omega(s_i,1)\)</span> comes from a <span class="math inline">\(N(0,\Sigma/(1-\rho^2)\)</span> stationary distribution; see <span class="citation" data-cites="cameletti2012">(<a href="#ref-cameletti2012" role="doc-biblioref">Cameletti et al. 2012</a>)</span>).</p>
 <div class="cell">
 <details><summary>Code</summary><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># load helping functions</span></span>
 <span></span>
@@ -542,7 +561,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 </div>
 </section><section id="sec-SVCOM" class="level1"><h1>Spatially varying coefficients (SVC)</h1>
-<p>Here we simulate from a spatially varying coefficient model by adopting a space model with Matérn spatial covariance and a AR(1) time component. The same setting described for the space-time model will be used to drawn independent realization from the random field by using the <code>book.rMatern()</code>function. Then, temporal autocorrelation will be introduced to the dynamic regression coefficient <span class="math inline">\(\beta_t\)</span> through the AR(1) structure described in the previous section (Note: The term <span class="math inline">\((1 - \rho^2)\)</span> is added because of INLA internal AR(1) model parametrization; <span class="citation" data-cites="krainski2018">[@krainski2018]</span>).</p>
+<p>Here we simulate from a spatially varying coefficient model by adopting a space model with Matérn spatial covariance and a AR(1) time component. The same setting described for the space-time model will be used to drawn independent realization from the random field by using the <code>book.rMatern()</code>function. Then, temporal autocorrelation will be introduced to the dynamic regression coefficient <span class="math inline">\(\beta_t\)</span> through the AR(1) structure described in the previous section (Note: The term <span class="math inline">\((1 - \rho^2)\)</span> is added because of INLA internal AR(1) model parametrization; <span class="citation" data-cites="krainski2018">(<a href="#ref-krainski2018" role="doc-biblioref">Krainski et al. 2018</a>)</span>).</p>
 <div class="cell">
 <details><summary>Code</summary><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># realization of the random field</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="va">seed</span><span class="op">)</span></span>
@@ -618,7 +637,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 
 
-</section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-cameletti2012" class="csl-entry" role="listitem">
+Cameletti, Michela, Finn Lindgren, Daniel Simpson, and Håvard Rue. 2012. <span>“Spatio-Temporal Modeling of Particulate Matter Concentration Through the SPDE Approach.”</span> <em>AStA Advances in Statistical Analysis</em> 97 (2): 109–31. <a href="https://doi.org/10.1007/s10182-012-0196-3">https://doi.org/10.1007/s10182-012-0196-3</a>.
+</div>
+<div id="ref-krainski2018" class="csl-entry" role="listitem">
+Krainski, Elias, Virgilio Gómez-Rubio, Haakon Bakka, Amanda Lenzi, Daniela Castro-Camilo, Daniel Simpson, Finn Lindgren, and Håvard Rue. 2018. <em>Advanced Spatial Modeling with Stochastic Partial Differential Equations Using r and INLA</em>. Chapman; Hall/CRC. <a href="https://doi.org/10.1201/9780429031892">https://doi.org/10.1201/9780429031892</a>.
+</div>
+</div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
 <ol>
 <li id="fn1"><p>Note: If you are using INLA development version you might need modify the <code>book.rspde function</code>. Specifically, change the <code>inla.mesh.project</code> function to <code><a href="https://inlabru-org.github.io/fmesher/reference/fm_evaluate.html">fmesher::fm_evaluator</a></code> function to project the mesh into the domain coordinates.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
@@ -907,7 +934,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
-    <div class="nav-footer-left">© Copyright 2023, YOUR NAME</div>   
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
     <div class="nav-footer-center">
       &nbsp;
     </div>
