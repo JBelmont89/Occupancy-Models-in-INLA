@@ -1,19 +1,16 @@
 ---
 title: "About Me"
-about:
-  id: me
-  template: broadside
-  image: img/profile.png
+format: 
+  html: default
+  pdf: default
 ---
 
-:::{#me}
+This section describes the steps to fit occupancy models in [R-INLA](https://www.r-inla.org/) using simulated data (simulation details can be found in the `Data Simulation` tab).
 
-## Goals
+# Simple Spatial Occupancy Model
 
-## Education
+*Model description goes in here ...*
 
-## Experience
+## Set up
 
-:::
-
-Thanks for checking out my web site!
+We first load the data and prepare it in the format that is required by the INLA library.

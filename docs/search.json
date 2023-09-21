@@ -1,9 +1,23 @@
 [
   {
+    "objectID": "projects.html",
+    "href": "projects.html",
+    "title": "Data Simulation",
+    "section": "",
+    "text": "This section describes the steps to simulate occurrence data for fitting spatially explicit occupancy models in R-INLA.\nSet up\n\nCode# Load the libraries\nlibrary(INLA)\nlibrary(inlabru)\nlibrary(fmesher)\nlibrary(spatstat)\nlibrary(sf)\nlibrary(terra)\nlibrary(ggplot2)\nlibrary(tidyverse)\nlibrary(gt)\nlibrary(dplyr)\nlibrary(viridis)\nlibrary(viridisLite)\nlibrary(scico)\nlibrary(patchwork)\n\n\nDefine the spatial domain and the regular lattice by setting a \\(300 \\times 300\\) study area divided into \\(5\\times5\\) grid cells.\n\nCode# Define spatial domain\nwin &lt;- owin(c(0,300), c(0,300))\nnpix &lt;- 1000\n\nDomain &lt;- rast(nrows=npix, ncols=npix,\n               xmax=win$xrange[2],xmin=win$xrange[1],\n               ymax = win$yrange[2],ymin=win$yrange[1])\n\nvalues(Domain) &lt;- 1:ncell(Domain)\nxy &lt;- crds(Domain)\n\n# Define regular grid\ncell_size = 3\ncustomGrid &lt;- st_make_grid(Domain,cellsize = c(cell_size,cell_size)) %&gt;% \n  st_cast(\"MULTIPOLYGON\") %&gt;%\n  st_sf() %&gt;%\n  mutate(cellid = row_number())\n\n# number of cells\nncells &lt;- nrow(customGrid)\n\n\n\n\n\n\nFigure 1: Custom 5\\(^2\\) units regular grid over a \\(300^2\\) area ."
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "About Me",
     "section": "",
-    "text": "Thanks for checking out my web site!"
+    "text": "This section describes the steps to fit occupancy models in R-INLA using simulated data (simulation details can be found in the Data Simulation tab)."
+  },
+  {
+    "objectID": "index.html#set-up",
+    "href": "index.html#set-up",
+    "title": "About Me",
+    "section": "Set up",
+    "text": "Set up\nWe first load the data and prepare it in the format that is required by the INLA library."
   }
 ]
