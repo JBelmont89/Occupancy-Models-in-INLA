@@ -4,28 +4,7 @@
     "href": "projects.html",
     "title": "Data Simulation",
     "section": "",
-    "text": "This section describes the steps to simulate occurrence data for fitting spatially explicit occupancy models in R-INLA."
-  },
-  {
-    "objectID": "projects.html#state-process-model-sub-component",
-    "href": "projects.html#state-process-model-sub-component",
-    "title": "Data Simulation",
-    "section": "State process model sub-component",
-    "text": "State process model sub-component\nDefine model parameters \\(\\beta\\) and compute the occupancy probabilities \\(\\psi\\) and occupancy states \\(z\\) (Figure 3)\n\nCode# State process model coeficcients\nbeta &lt;- c(NA,NA)\nbeta[1] &lt;-  qlogis(0.3) # Base line occupancy probability\nbeta[2] &lt;- 1.5  # environmental covariate effect\n\n# Occupancy probabilities\npsi &lt;- inla.link.logit(beta[1] + beta[2]*x_s + omega_s, inverse = T) \n\n# True occupancy state \n\nset.seed(seed)\nz &lt;- rbinom(ncells, size = 1, prob = psi)\n\n\n\n\n\n\nFigure 3: Simulated occupancy probabilities and true presence/absence state"
-  },
-  {
-    "objectID": "projects.html#observational-process-model-sub-component",
-    "href": "projects.html#observational-process-model-sub-component",
-    "title": "Data Simulation",
-    "section": "Observational process model sub-component",
-    "text": "Observational process model sub-component\nRandom sample of 20 % of the total cells and draw a random number of \\(K\\) visits per cell by setting a minimum of 1 and a maximum of 5 visits per site/cell.\n\nCode# number of cells/sites in the sample\nnsites = round(ncells*.20) \nsite_id = sample(1:ncells, size=nsites, replace=FALSE) # cell id\n# add an indicator of whether a cell is in the sample or not\ncustomGrid$sample &lt;- ifelse(customGrid$cellid%in%site_id,1,0)\n              \nmin_nvisits = 1 # minimum number of visits\nmax_nvisits = 5 # maximum number of visits\n# Probabiliies of drawing 1 thru 5 visits per site\nprobs = rep(1/length(min_nvisits:max_nvisits),length(min_nvisits:max_nvisits))\n# Number of visits\nnvisits = sample(min_nvisits:max_nvisits,nsites, prob = probs, replace = T)\n\n\nDefine model parameters \\(\\alpha\\) , detection probabilities \\(p\\) and observed number of occurrences per site \\(y\\) (Figure 4):\n\nCode# Observational process model coeficcients\nalpha &lt;- c(NA,NA)\nalpha[1] &lt;- qlogis(0.6) # Base line detection probability\nalpha[2] &lt;- 1 # detection covariate effect\n\n# Detection probabilities\np &lt;- inla.link.logit(alpha[1] + alpha[2]*g_s[site_id], inverse = T) \ny &lt;- rbinom(n = nsites,size = nvisits,prob = p*z[site_id] )\n\n\nCreate data set Table 1:\n\nCode# centroid of the cell\n\nOcc_data_1 &lt;- customGrid |&gt;\n  st_centroid() |&gt;\n  filter(sample==1) |&gt;\n  dplyr::select(-c('sample'))\n\ny_counts = data.frame(y = y , cellid = site_id, nvisits = nvisits)\n\nOcc_data_1 &lt;- left_join(Occ_data_1,y_counts,by = \"cellid\")\n\n# append coordinates as columns\n\nOcc_data_1[,c('x.loc','y.loc')] &lt;- st_coordinates(Occ_data_1)\nOcc_data_1 = st_drop_geometry(Occ_data_1)\n# Save CSV file for analysis\nwrite.csv(Occ_data_1,file='Occ_data_1.csv',row.names = F)\n\n\n\n\n\n\nTable 1: First 6 entries of the occupancy data\n\ncellid\ny\nnvisits\nx.loc\ny.loc\n\n\n\n2\n0\n5\n4.5\n1.5\n\n\n5\n3\n4\n13.5\n1.5\n\n\n6\n2\n3\n16.5\n1.5\n\n\n7\n4\n5\n19.5\n1.5\n\n\n9\n0\n1\n25.5\n1.5\n\n\n23\n0\n4\n67.5\n1.5\n\n\n\n\n\n\n\n\n\n\nFigure 4: Number of times species was detected at sampled sites and true occupancy state."
-  },
-  {
-    "objectID": "projects.html#footnotes",
-    "href": "projects.html#footnotes",
-    "title": "Data Simulation",
-    "section": "Footnotes",
-    "text": "Footnotes\n\nNote: If you are using INLA development version you might need modify the book.rspde function. Specifically, change the inla.mesh.project function to fmesher::fm_evaluator function to project the mesh into the domain coordinates.↩︎"
+    "text": "This section describes the steps to simulate occurrence data for fitting spatially explicit occupancy models in R-INLA.\nSet up\n\nCode# Load the libraries\nlibrary(INLA)\nlibrary(inlabru)\nlibrary(fmesher)\nlibrary(spatstat)\nlibrary(sf)\nlibrary(terra)\nlibrary(ggplot2)\nlibrary(tidyverse)\nlibrary(gt)\nlibrary(dplyr)\nlibrary(viridis)\nlibrary(viridisLite)\nlibrary(scico)\nlibrary(patchwork)\n\n\nDefine the spatial domain and the regular lattice by setting a \\(300 \\times 300\\) study area divided into \\(5\\times5\\) grid cells.\n\nCode# Define spatial domain\nwin &lt;- owin(c(0,300), c(0,300))\nnpix &lt;- 1000\n\nDomain &lt;- rast(nrows=npix, ncols=npix,\n               xmax=win$xrange[2],xmin=win$xrange[1],\n               ymax = win$yrange[2],ymin=win$yrange[1])\n\nvalues(Domain) &lt;- 1:ncell(Domain)\nxy &lt;- crds(Domain)\n\n# Define regular grid\ncell_size = 3\ncustomGrid &lt;- st_make_grid(Domain,cellsize = c(cell_size,cell_size)) %&gt;% \n  st_cast(\"MULTIPOLYGON\") %&gt;%\n  st_sf() %&gt;%\n  mutate(cellid = row_number())\n\n# number of cells\nncells &lt;- nrow(customGrid)\n\n\n\n\n\n\nFigure 1: Custom 5\\(^2\\) units regular grid over a \\(300^2\\) area ."
   },
   {
     "objectID": "index.html",
