@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.3.450">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-
-
-<title>Occupancy Models with R-INLA - About Me</title>
+<title>Occupancy Models with R-INLA - Fitting Occupancy models with R-INLA</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,8 +17,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
-
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
@@ -38,8 +68,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
-<script id="quarto-search-options" type="application/json">{
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -58,17 +87,12 @@ ul.task-list li input[type="checkbox"] {
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script>
-
-
+}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 </head>
-
 <body class="nav-fixed">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg navbar-dark ">
-      <div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg navbar-dark "><div class="navbar-container container-fluid">
       <div class="navbar-brand-container">
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">Occupancy Models with R-INLA</span>
@@ -80,7 +104,7 @@ ul.task-list li input[type="checkbox"] {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item">
+<li class="nav-item">
     <a class="nav-link active" href="./index.html" rel="" target="" aria-current="page">
  <span class="menu-text">Fitting Occupancy models with INLA</span></a>
   </li>  
@@ -89,35 +113,34 @@ ul.task-list li input[type="checkbox"] {
  <span class="menu-text">Data Simulation</span></a>
   </li>  
 </ul>
-            <div class="quarto-navbar-tools ms-auto">
+<div class="quarto-navbar-tools ms-auto">
     <a href="https://github.com/JBelmont89/Occupancy-Models-in-INLA/" rel="" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-github"></i></a>
 </div>
           </div> <!-- /navcollapse -->
       </div> <!-- /container-fluid -->
-    </nav>
-</header>
-<!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#simple-spatial-occupancy-model" id="toc-simple-spatial-occupancy-model" class="nav-link active" data-scroll-target="#simple-spatial-occupancy-model">Simple Spatial Occupancy Model</a>
+<li>
+<a href="#simple-spatial-occupancy-model" id="toc-simple-spatial-occupancy-model" class="nav-link active" data-scroll-target="#simple-spatial-occupancy-model">Simple Spatial Occupancy Model</a>
   <ul class="collapse">
-  <li><a href="#set-up" id="toc-set-up" class="nav-link" data-scroll-target="#set-up">Set up</a></li>
-  </ul></li>
+<li>
+<a href="#set-up" id="toc-set-up" class="nav-link" data-scroll-target="#set-up">Set up</a>
+  <ul class="collapse">
+<li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
   </ul>
-<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="index.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</li>
+  </ul>
+</li>
+  </ul><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="index.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
-
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">About Me</h1>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Fitting Occupancy models with R-INLA</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li></ul></div></div>
 </div>
 
 
@@ -130,22 +153,243 @@ ul.task-list li input[type="checkbox"] {
   </div>
   
 
-</header>
-
-<p>This section describes the steps to fit occupancy models in <a href="https://www.r-inla.org/">R-INLA</a> using simulated data (simulation details can be found in the <code>Data Simulation</code> tab).</p>
-<section id="simple-spatial-occupancy-model" class="level1">
-<h1>Simple Spatial Occupancy Model</h1>
+</header><p>This section describes the steps to fit occupancy models in <a href="https://www.r-inla.org/">R-INLA</a> using simulated data (simulation details can be found in the <code>Data Simulation</code> tab).</p>
+<section id="simple-spatial-occupancy-model" class="level1"><h1>Simple Spatial Occupancy Model</h1>
 <p><em>Model description goes in here …</em></p>
-<section id="set-up" class="level2">
-<h2 class="anchored" data-anchor-id="set-up">Set up</h2>
+<section id="set-up" class="level2"><h2 class="anchored" data-anchor-id="set-up">Set up</h2>
 <p>We first load the data and prepare it in the format that is required by the INLA library.</p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">INLA</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.inlabru.org">inlabru</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://inlabru-org.github.io/fmesher/">fmesher</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/">sf</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/">terra</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">SSOM</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.csv</a></span><span class="op">(</span><span class="st">"Occ_data_1.csv"</span><span class="op">)</span></span>
+<span><span class="va">x_covariate</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html">rast</a></span><span class="op">(</span><span class="st">'raster data/x_covariat.tif'</span><span class="op">)</span></span>
+<span><span class="va">g_covariate</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html">rast</a></span><span class="op">(</span><span class="st">'raster data/g_covariat.tif'</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Extract the covariate values (NOTE: adapt this if inlabru is used)</span></span>
+<span></span>
+<span><span class="co"># Convert to sf </span></span>
+<span><span class="va">SSOM</span> <span class="op">&lt;-</span> <span class="va">SSOM</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span>coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'x.loc'</span>,<span class="st">'y.loc'</span><span class="op">)</span><span class="op">)</span> </span>
+<span></span>
+<span><span class="co">#evaluate covariartes at each coordinate</span></span>
+<span><span class="va">SSOM</span> <span class="op">=</span> <span class="va">SSOM</span> <span class="op">|&gt;</span> </span>
+<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/extract.html">extract</a></span><span class="op">(</span><span class="va">x_covariate</span>,<span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html">st_coordinates</a></span><span class="op">(</span><span class="va">SSOM</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>               <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/extract.html">extract</a></span><span class="op">(</span><span class="va">g_covariate</span>,<span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html">st_coordinates</a></span><span class="op">(</span><span class="va">SSOM</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div id="tbl-t1" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;1: First 6 entries of the occupancy data</caption>
+<thead><tr class="header">
+<th style="text-align: right;">cellid</th>
+<th style="text-align: right;">y</th>
+<th style="text-align: right;">nvisits</th>
+<th style="text-align: left;">geometry</th>
+<th style="text-align: right;">x_s</th>
+<th style="text-align: right;">g_s</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">POINT (4.5 1.5)</td>
+<td style="text-align: right;">0.0674760</td>
+<td style="text-align: right;">1.4913634</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">POINT (13.5 1.5)</td>
+<td style="text-align: right;">-0.2770668</td>
+<td style="text-align: right;">0.9355086</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">POINT (16.5 1.5)</td>
+<td style="text-align: right;">-0.4963150</td>
+<td style="text-align: right;">0.8894699</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">POINT (19.5 1.5)</td>
+<td style="text-align: right;">-0.4927090</td>
+<td style="text-align: right;">0.7932032</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">POINT (25.5 1.5)</td>
+<td style="text-align: right;">-0.2284233</td>
+<td style="text-align: right;">0.5705246</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">POINT (67.5 1.5)</td>
+<td style="text-align: right;">0.7247477</td>
+<td style="text-align: right;">-0.1598709</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>Create the mesh … <em>add details</em></p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">boundary_sf</span> <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html">st_bbox</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">0</span>, xmax <span class="op">=</span> <span class="fl">300</span>, ymax <span class="op">=</span> <span class="fl">0</span>, ymin <span class="op">=</span> <span class="fl">300</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sfc.html">st_as_sfc</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">mesh</span> <span class="op">=</span> <span class="fu"><a href="https://inlabru-org.github.io/fmesher/reference/fm_mesh_2d.html">fm_mesh_2d</a></span><span class="op">(</span>loc.domain <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html">st_coordinates</a></span><span class="op">(</span><span class="va">boundary_sf</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>,</span>
+<span>                    offset <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.1</span>, <span class="op">-</span><span class="fl">.2</span><span class="op">)</span>,</span>
+<span>                    max.edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">matern</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.spde2.pcmatern.html">inla.spde2.pcmatern</a></span><span class="op">(</span><span class="va">mesh</span>,</span>
+<span>                              prior.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">0.5</span><span class="op">)</span>,  </span>
+<span>                              prior.sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><img src="index_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="384"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Create projector A matrix and make stacks .</p>
+<p><em>add list of the arguments for building the stack (switch with</em> <code>inlabru</code> <em>details)</em></p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># A_sp &lt;- inla.spde.make.A(mesh = mesh, </span></span>
+<span><span class="co">#                       loc = SSOM[,c('x.loc','y.loc')] |&gt; as.matrix())</span></span>
+<span></span>
+<span><span class="va">A_sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.A.html">inla.spde.make.A</a></span><span class="op">(</span>mesh <span class="op">=</span> <span class="va">mesh</span>, </span>
+<span>                      loc <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html">st_coordinates</a></span><span class="op">(</span><span class="va">SSOM</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">iset_sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.spde.make.index.html">inla.spde.make.index</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"spatial_field"</span>, <span class="va">matern</span><span class="op">$</span><span class="va">n.spde</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="va">stk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html">inla.stack</a></span><span class="op">(</span>data<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>Ycounts <span class="op">=</span> <span class="va">SSOM</span><span class="op">$</span><span class="va">y</span>, <span class="co"># observed occurrences</span></span>
+<span>                            Ncounts <span class="op">=</span> <span class="va">SSOM</span><span class="op">$</span><span class="va">nvisits</span>, <span class="co"># number of visits</span></span>
+<span>                            det_cov <span class="op">=</span> <span class="va">SSOM</span><span class="op">$</span><span class="va">x_s</span>, <span class="co"># detection covariate</span></span>
+<span>                            Int_det <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">SSOM</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="co"># Baseline detection </span></span>
+<span>                  A<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">A_sp</span>,<span class="fl">1</span><span class="op">)</span>,  <span class="co"># the A matrix; the 1 is included to make the list(covariates)</span></span>
+<span>                  effects<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>Int_occ<span class="op">=</span><span class="fl">1</span><span class="op">)</span>, <span class="co">#the Intercept</span></span>
+<span>                                 <span class="va">iset_sp</span><span class="op">)</span>,  <span class="co">#the spatial index</span></span>
+<span>                               <span class="co">#the covariates</span></span>
+<span>                               <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>occ_cov <span class="op">=</span> <span class="va">SSOM</span><span class="op">$</span><span class="va">x_s</span><span class="op">)</span><span class="op">)</span>, </span>
+<span>                  <span class="co">#this is a quick name so yo can call upon easily</span></span>
+<span>                  tag<span class="op">=</span><span class="st">'ssom'</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Now we define the model components (left hand side -observational model components; right hand side - state process components) and fit the model <em>(switch with</em> <code>inlabru</code> <em>details):</em></p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">formula_ssom</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/mdata.html">inla.mdata</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">Ycounts</span>,<span class="va">Ncounts</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">Int_det</span>,<span class="va">det_cov</span><span class="op">)</span><span class="op">)</span> <span class="op">~</span>  <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="va">Int_occ</span> <span class="op">+</span>  <span class="va">occ_cov</span> <span class="op">+</span>  <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/f.html">f</a></span><span class="op">(</span><span class="va">spatial_field</span>, model<span class="op">=</span><span class="va">matern</span><span class="op">)</span> </span>
+<span></span>
+<span></span>
+<span><span class="va">model_ssom</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.html">inla</a></span><span class="op">(</span><span class="va">formula_ssom</span>, data<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html">inla.stack.data</a></span><span class="op">(</span><span class="va">stk</span><span class="op">)</span>, </span>
+<span>                 family<span class="op">=</span> <span class="st">'0binomialS'</span>,</span>
+<span>                 control.fixed <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>prec <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">2.72</span>, prec.intercept <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">2.72</span><span class="op">)</span>,</span>
+<span>                 control.predictor<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>A<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.stack.html">inla.stack.A</a></span><span class="op">(</span><span class="va">stk</span><span class="op">)</span>,compute<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>                 control.compute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>dic <span class="op">=</span> <span class="cn">TRUE</span>, waic <span class="op">=</span> <span class="cn">TRUE</span>, config <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>                 verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                 control.family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>control.link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>model <span class="op">=</span> <span class="st">"logit"</span><span class="op">)</span>,</span>
+<span>                                       link.simple <span class="op">=</span> <span class="st">"logit"</span>,</span>
+<span>                 hyper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>                   beta1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>param <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, initial <span class="op">=</span> <span class="op">-</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>                   beta2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>param <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">/</span><span class="fl">2.72</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>                 <span class="op">)</span></span>
+<span>                 <span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="results" class="level3"><h3 class="anchored" data-anchor-id="results">Results</h3>
+<p><em>Show the summary results in</em> <a href="#tbl-ssom-tbl1">Table&nbsp;2</a>:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-ssom-tbl1" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;2: summary results from output</caption>
+<thead><tr class="header">
+<th style="text-align: left;">par</th>
+<th style="text-align: right;">true</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">quant0.025</th>
+<th style="text-align: right;">quant0.975</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\beta_0\)</span></td>
+<td style="text-align: right;">-0.85</td>
+<td style="text-align: right;">-2.34</td>
+<td style="text-align: right;">-3.99</td>
+<td style="text-align: right;">-1.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\beta_1\)</span></td>
+<td style="text-align: right;">1.50</td>
+<td style="text-align: right;">1.14</td>
+<td style="text-align: right;">0.81</td>
+<td style="text-align: right;">1.47</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\alpha_0\)</span></td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">0.35</td>
+<td style="text-align: right;">0.22</td>
+<td style="text-align: right;">0.48</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\alpha_1\)</span></td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">0.23</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\rho\)</span></td>
+<td style="text-align: right;">100.00</td>
+<td style="text-align: right;">203.39</td>
+<td style="text-align: right;">100.41</td>
+<td style="text-align: right;">383.38</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\sigma\)</span></td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.55</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">2.40</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p><em>show some plots:</em></p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div id="fig-posterior-dens-ssom" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure"><p><img src="index_files/figure-html/fig-posterior-dens-ssom-1.png" class="img-fluid figure-img" width="960"></p>
+<figcaption class="figure-caption">Figure&nbsp;1: Posterior densities</figcaption></figure>
+</div>
+</div>
+</div>
 
 
-</section>
-</section>
-
-</main> <!-- /main -->
-<script id="quarto-html-after-body" type="application/javascript">
+</section></section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -224,6 +468,57 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     // clear code selection
     e.clearSelection();
   });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
   function tippyHover(el, contentFn) {
     const config = {
       allowHTML: true,
@@ -379,8 +674,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
-<footer class="footer">
-  <div class="nav-footer">
+<footer class="footer"><div class="nav-footer">
     <div class="nav-footer-left">© Copyright 2023, YOUR NAME</div>   
     <div class="nav-footer-center">
       &nbsp;
@@ -388,7 +682,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     <div class="nav-footer-right">Built with <a href="https://quarto.org/">Quarto</a></div>
   </div>
 </footer>
-
 
 
 </body></html>

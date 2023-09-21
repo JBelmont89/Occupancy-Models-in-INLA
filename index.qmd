@@ -1,7 +1,12 @@
 ---
-title: "About Me"
+title: "Fitting Occupancy models with R-INLA"
 format: 
-  html: default
+  html: 
+    code-link: true
+    code-fold: true
+    code-tools: 
+      source: false
+      toggle: true
   pdf: default
 ---
 
@@ -14,3 +19,218 @@ This section describes the steps to fit occupancy models in [R-INLA](https://www
 ## Set up
 
 We first load the data and prepare it in the format that is required by the INLA library.
+```{r}
+#| warning: false
+#| message: false
+library(INLA)
+library(inlabru)
+library(fmesher)
+library(tidyverse)
+library(sf)
+library(terra)
+library(dplyr)
+
+SSOM <- read.csv("Occ_data_1.csv")
+x_covariate <- terra::rast('raster data/x_covariat.tif')
+g_covariate <- terra::rast('raster data/g_covariat.tif')
+
+# Extract the covariate values (NOTE: adapt this if inlabru is used)
+
+# Convert to sf 
+SSOM <- SSOM |>
+  st_as_sf(coords = c('x.loc','y.loc')) 
+
+#evaluate covariartes at each coordinate
+SSOM = SSOM |> 
+        mutate(terra::extract(x_covariate,st_coordinates(SSOM)),
+               terra::extract(g_covariate,st_coordinates(SSOM)))
+
+
+
+```
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| label: tbl-t1
+#| tbl-cap: First 6 entries of the occupancy data
+
+SSOM |>
+  head(n=6) |>
+ knitr:: kable()
+
+```
+
+Create the mesh ... *add details*
+
+```{r}
+boundary_sf = st_bbox(c(xmin = 0, xmax = 300, ymax = 0, ymin = 300)) |> 
+  st_as_sfc()
+
+mesh = fm_mesh_2d(loc.domain = st_coordinates(boundary_sf)[,1:2],
+                    offset = c(-0.1, -.2),
+                    max.edge = c(15, 30))
+matern <- inla.spde2.pcmatern(mesh,
+                              prior.range = c(100, 0.5),  
+                              prior.sigma = c(1, 0.5))
+
+```
+
+```{r}
+#| echo: false
+#| fig-width: 4
+#| fig-height: 4
+#| fig-align: center
+ggplot()+gg(mesh)
+```
+
+Create projector A matrix and make stacks .
+
+*add list of the arguments for building the stack (switch with* `inlabru` *details)*
+
+```{r}
+# A_sp <- inla.spde.make.A(mesh = mesh, 
+#                       loc = SSOM[,c('x.loc','y.loc')] |> as.matrix())
+
+A_sp <- inla.spde.make.A(mesh = mesh, 
+                      loc = st_coordinates(SSOM))
+
+iset_sp <- inla.spde.make.index(name = "spatial_field", matern$n.spde)
+
+
+stk <- inla.stack(data=list(Ycounts = SSOM$y, # observed occurrences
+                            Ncounts = SSOM$nvisits, # number of visits
+                            det_cov = SSOM$x_s, # detection covariate
+                            Int_det = rep(1,length(SSOM$y))), # Baseline detection 
+                  A=list(A_sp,1),  # the A matrix; the 1 is included to make the list(covariates)
+                  effects=list(c(list(Int_occ=1), #the Intercept
+                                 iset_sp),  #the spatial index
+                               #the covariates
+                               list(occ_cov = SSOM$x_s)), 
+                  #this is a quick name so yo can call upon easily
+                  tag='ssom')
+
+
+```
+
+Now we define the model components (left hand side -observational model components; right hand side - state process components) and fit the model *(switch with* `inlabru` *details):*
+
+```{r}
+#| warning: false
+#| message: false
+formula_ssom <- inla.mdata(cbind(Ycounts,Ncounts),cbind(Int_det,det_cov)) ~  -1 + Int_occ +  occ_cov +  f(spatial_field, model=matern) 
+
+
+model_ssom <- inla(formula_ssom, data=inla.stack.data(stk), 
+                 family= '0binomialS',
+                 control.fixed =  list(prec = 1/2.72, prec.intercept = 1/2.72),
+                 control.predictor=list(A=inla.stack.A(stk),compute=TRUE),
+                 control.compute = list(dic = TRUE, waic = TRUE, config = TRUE),
+                 verbose = FALSE,
+                 control.family = list(control.link = list(model = "logit"),
+                                       link.simple = "logit",
+                 hyper = list(
+                   beta1 = list(param = c(0,1), initial = -1),
+                   beta2 = list(param = c(0,1/2.72)))
+                 )
+                 )
+
+```
+
+### Results
+
+*Show the summary results in* @tbl-ssom-tbl1:
+
+```{r}
+#| echo: false
+#| label: tbl-ssom-tbl1
+#| tbl-cap: summary results from output
+
+# True coef values
+
+beta <- c(NA,NA)
+beta[1] <-  qlogis(0.3) # Base line occupancy probability
+beta[2] <- 1.5  # environmental covariate effect
+alpha <- c(NA,NA)
+alpha[1] <- qlogis(0.6) # Base line detection probability
+alpha[2] <- 1 # detection covariate effect
+
+range_spde = 100
+sigma_spde = 1
+
+cell_size = 5
+# Adjust Intercept by accounting for the cell size
+adjust_int = function(x)
+  x-log(cell_size^2)
+
+
+  bind_rows(inla.tmarginal(adjust_int, model_ssom$marginals.fixed$Int_occ) |>
+  inla.zmarginal(silent = T) |>  as_tibble() |> 
+    dplyr::select(mean,quant0.025,quant0.975) |>
+    add_column(true = beta[1],.before ="mean") |>
+    add_column(par = "$\\beta_0$",.before ="true"),
+  
+  inla.tmarginal(function(x) -x, model_ssom$marginals.fixed$occ_cov) |>
+  inla.zmarginal(silent = T) |>  as_tibble() |> 
+    dplyr::select(mean,quant0.025,quant0.975) |>
+    add_column(true = beta[2],.before ="mean") |>
+    add_column(par = "$\\beta_1$",.before ="true"),
+  
+  model_ssom$marginals.hyperpar$`beta1 for 0binomialS observations` |>
+  inla.zmarginal(silent = T) |>  as_tibble() |> 
+    dplyr::select(mean,quant0.025,quant0.975) |>
+    add_column(true = alpha[1],.before ="mean") |>
+    add_column(par = "$\\alpha_0$",.before ="true"),
+  
+  model_ssom$marginals.hyperpar$`beta2 for 0binomialS observations` |>
+  inla.zmarginal(silent = T) |>  as_tibble() |> 
+    dplyr::select(mean,quant0.025,quant0.975) |>
+    add_column(true = alpha[2],.before ="mean") |>
+    add_column(par = "$\\alpha_1$",.before ="true"),
+  
+  model_ssom$marginals.hyperpar$`Range for spatial_field`|>
+  inla.zmarginal(silent = T) |>  as_tibble() |> 
+    dplyr::select(mean,quant0.025,quant0.975) |>
+    add_column(true = range_spde,.before ="mean") |>
+    add_column(par = "$\\rho$",.before ="true"),
+  
+  model_ssom$marginals.hyperpar$`Stdev for spatial_field`|>
+  inla.zmarginal(silent = T) |>  as_tibble() |> 
+    dplyr::select(mean,quant0.025,quant0.975) |>
+    add_column(true = sigma_spde,.before ="mean") |>
+    add_column(par = "$\\sigma$",.before ="true")
+  
+  ) |> 
+     knitr::kable(escape = FALSE,digits = 2)
+
+
+```
+
+*show some plots:*
+
+```{r}
+#| echo: false
+#| label: fig-posterior-dens-ssom
+#| fig-width: 10
+#| fig-height: 4
+#| fig-align: center
+#| fig-cap: Posterior densities
+
+results = data.frame(inla.tmarginal(
+  adjust_int, model_ssom$marginals.fixed$Int_occ),
+                     par = "beta[0]", true.value = qlogis(0.3))
+
+results = rbind(results,
+                data.frame(
+                inla.tmarginal(function(x) -x ,
+                               model_ssom$marginals.fixed$occ_cov),
+                  par = "beta[1]",
+                  true.value = 1.5
+                ))
+
+  ggplot(data = results, aes(x,y,colour = par)) +
+  geom_line() +
+  geom_vline(aes(xintercept = true.value), linewidth = 0.6) +
+    facet_wrap(~par,labeller = label_parsed,scales = 'free_x')+
+  theme(legend.position = 0)
+```

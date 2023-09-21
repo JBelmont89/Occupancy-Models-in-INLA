@@ -74,483 +74,483 @@ ncells <- nrow(customGrid)
 ggplot() + geom_sf(data=customGrid) + ggtitle('Simulated study area')
 ```
 
-<!-- # Simulate data for a simple spatial occupancy model {#sec-SSOM} -->
+# Simulate data for a simple spatial occupancy model {#sec-SSOM}
 
-<!-- We simulate three different Gaussian Markov Random fields (GMRF) using the `inla.qsample` function. -->
+We simulate three different Gaussian Markov Random fields (GMRF) using the `inla.qsample` function.
 
-<!-- ```{r} -->
-<!-- #| warning: false -->
+```{r}
+#| warning: false
 
 
-<!-- # Spatial boundary -->
-<!-- boundary_sf = st_bbox(c(xmin = 0, xmax = 300, ymax = 0, ymin = 300)) |>  -->
-<!--   st_as_sfc() -->
+# Spatial boundary
+boundary_sf = st_bbox(c(xmin = 0, xmax = 300, ymax = 0, ymin = 300)) |>
+  st_as_sfc()
 
-<!-- # Create a fine mesh  -->
-<!-- mesh_sim = fm_mesh_2d(loc.domain = st_coordinates(boundary_sf)[,1:2], -->
-<!--                 offset = c(-0.1, -.2), -->
-<!--                  max.edge = c(4, 50)) -->
-<!-- # Matern model -->
-<!-- matern_sim <- inla.spde2.pcmatern(mesh_sim, -->
-<!--                                   prior.range = c(100, 0.5),   -->
-<!--                                   prior.sigma = c(1, 0.5)) -->
+# Create a fine mesh
+mesh_sim = fm_mesh_2d(loc.domain = st_coordinates(boundary_sf)[,1:2],
+                offset = c(-0.1, -.2),
+                 max.edge = c(4, 50))
+# Matern model
+matern_sim <- inla.spde2.pcmatern(mesh_sim,
+                                  prior.range = c(100, 0.5),
+                                  prior.sigma = c(1, 0.5))
 
 
-<!-- range_spde = 100 -->
-<!-- sigma_spde = 1 -->
+range_spde = 100
+sigma_spde = 1
 
-<!-- # Precision matrix -->
-<!-- Q = inla.spde.precision(matern_sim, theta = c(log(range_spde), -->
-<!--                                               log(sigma_spde))) -->
-<!-- # Simulate three spatial fields -->
-<!-- seed = 12345 -->
-<!-- sim_field = inla.qsample(n = 3, Q = Q, seed = seed) -->
+# Precision matrix
+Q = inla.spde.precision(matern_sim, theta = c(log(range_spde),
+                                              log(sigma_spde)))
+# Simulate three spatial fields
+seed = 12345
+sim_field = inla.qsample(n = 3, Q = Q, seed = seed)
 
-<!-- ``` -->
+```
 
-<!-- Create the projector matrix `A_proj` using the centroid of each grid cell as coordinates and compute the spatial random effect $\omega(s)$, spatial environmental covariate $x(s)$ and spatial detection covariate $g(s)$ (@fig-spatial_components). (Note: Covariates $x(s)$ and $g(s)$ are stored as raster data). -->
+Create the projector matrix `A_proj` using the centroid of each grid cell as coordinates and compute the spatial random effect $\omega(s)$, spatial environmental covariate $x(s)$ and spatial detection covariate $g(s)$ (@fig-spatial_components). (Note: Covariates $x(s)$ and $g(s)$ are stored as raster data).
 
-<!-- ```{r} -->
-<!-- #| warning: false -->
+```{r}
+#| warning: false
 
 
-<!-- # Obtain the centroid of each cell -->
-<!-- coord_grid  = st_coordinates(customGrid |> st_centroid())  -->
-<!-- # A matrix -->
-<!-- A_proj = inla.spde.make.A(mesh_sim, loc = coord_grid) -->
+# Obtain the centroid of each cell
+coord_grid  = st_coordinates(customGrid |> st_centroid())
+# A matrix
+A_proj = inla.spde.make.A(mesh_sim, loc = coord_grid)
 
-<!-- # Spatial components -->
-<!-- omega_s = (A_proj %*% sim_field)[,1] # spatial random field -->
-<!-- x_s = (A_proj %*% sim_field)[,2] # spatial environmental covariate -->
-<!-- g_s = (A_proj %*% sim_field)[,3] # spatial detection covariate -->
+# Spatial components
+omega_s = (A_proj %*% sim_field)[,1] # spatial random field
+x_s = (A_proj %*% sim_field)[,2] # spatial environmental covariate
+g_s = (A_proj %*% sim_field)[,3] # spatial detection covariate
 
-<!-- # create rasters -->
-<!-- x_rast = rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],x_s)) -->
-<!-- g_rast = rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],g_s)) -->
+# create rasters
+x_rast = rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],x_s))
+g_rast = rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],g_s))
 
-<!-- # save raster data -->
+# save raster data
 
-<!-- writeRaster(x_rast,filename = paste('raster data','x_covariat.tif',sep='/'), -->
-<!--             overwrite=TRUE) -->
-<!-- writeRaster(g_rast,filename = paste('raster data','g_covariat.tif',sep='/'),overwrite=TRUE) -->
+writeRaster(x_rast,filename = paste('raster data','x_covariat.tif',sep='/'),
+            overwrite=TRUE)
+writeRaster(g_rast,filename = paste('raster data','g_covariat.tif',sep='/'),overwrite=TRUE)
 
-<!-- ``` -->
+```
 
-<!-- ```{r} -->
-<!-- #| echo: false -->
-<!-- #| fig-height: 4 -->
-<!-- #| fig-width: 10 -->
-<!-- #| label: fig-spatial_components -->
-<!-- #| fig-cap: Simulated  spatial environmental  and detection covariates and spatial random field. -->
+```{r}
+#| echo: false
+#| fig-height: 4
+#| fig-width: 10
+#| label: fig-spatial_components
+#| fig-cap: Simulated  spatial environmental  and detection covariates and spatial random field.
 
-<!-- ggplot() + tidyterra::geom_spatraster(data=x_rast) +scale_fill_viridis(name=expression(x(s))) + ggtitle('environmental covariate') + -->
-<!--  ggplot() + tidyterra::geom_spatraster(data=g_rast) +scale_fill_viridis(option='magma',name=expression(g(s))) + ggtitle('detection covariate')+ -->
-<!--    ggplot() + tidyterra::geom_spatraster(data= rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],omega_s))) +scale_fill_scico(name=expression(omega(s)))+ ggtitle('spatial field') -->
-<!-- ``` -->
+ggplot() + tidyterra::geom_spatraster(data=x_rast) +scale_fill_viridis(name=expression(x(s))) + ggtitle('environmental covariate') +
+ ggplot() + tidyterra::geom_spatraster(data=g_rast) +scale_fill_viridis(option='magma',name=expression(g(s))) + ggtitle('detection covariate')+
+   ggplot() + tidyterra::geom_spatraster(data= rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],omega_s))) +scale_fill_scico(name=expression(omega(s)))+ ggtitle('spatial field')
+```
 
-<!-- Occurrence data is simulated from the following occupancy model: -->
+Occurrence data is simulated from the following occupancy model:
 
-<!-- ```{=tex} -->
-<!-- \begin{align}  \mbox{State process:}& \begin{cases} z_i  \sim \mathrm{Bernoulli}(\psi_i) \nonumber \\\mathrm{logit}(\psi_i) = \beta_0 + \beta_1 \ x(s) + \omega(s) \\ -->
-<!-- \end{cases}\\ -->
-<!--  \mbox{ Observational process:}& \begin{cases} y_i \sim \mathrm{Binomial}(K_i,z_i \times p_i) \nonumber \\\mathrm{logit}(p_i) = \alpha_0 + \alpha_1 \ g(s) \\ -->
-<!-- \end{cases} -->
-<!-- \end{align} -->
-<!-- ``` -->
-<!-- ## State process model sub-component -->
+```{=tex}
+\begin{align}  \mbox{State process:}& \begin{cases} z_i  \sim \mathrm{Bernoulli}(\psi_i) \nonumber \\\mathrm{logit}(\psi_i) = \beta_0 + \beta_1 \ x(s) + \omega(s) \\
+\end{cases}\\
+ \mbox{ Observational process:}& \begin{cases} y_i \sim \mathrm{Binomial}(K_i,z_i \times p_i) \nonumber \\\mathrm{logit}(p_i) = \alpha_0 + \alpha_1 \ g(s) \\
+\end{cases}
+\end{align}
+```
+## State process model sub-component
 
-<!-- Define model parameters $\beta$ and compute the occupancy probabilities $\psi$ and occupancy states $z$ (@fig-occ-state) -->
+Define model parameters $\beta$ and compute the occupancy probabilities $\psi$ and occupancy states $z$ (@fig-occ-state)
 
-<!-- ```{r} -->
+```{r}
 
-<!-- # State process model coeficcients -->
-<!-- beta <- c(NA,NA) -->
-<!-- beta[1] <-  qlogis(0.3) # Base line occupancy probability -->
-<!-- beta[2] <- 1.5  # environmental covariate effect -->
+# State process model coeficcients
+beta <- c(NA,NA)
+beta[1] <-  qlogis(0.3) # Base line occupancy probability
+beta[2] <- 1.5  # environmental covariate effect
 
-<!-- # Occupancy probabilities -->
-<!-- psi <- inla.link.logit(beta[1] + beta[2]*x_s + omega_s, inverse = T)  -->
+# Occupancy probabilities
+psi <- inla.link.logit(beta[1] + beta[2]*x_s + omega_s, inverse = T)
 
-<!-- # True occupancy state  -->
+# True occupancy state
 
-<!-- set.seed(seed) -->
-<!-- z <- rbinom(ncells, size = 1, prob = psi) -->
+set.seed(seed)
+z <- rbinom(ncells, size = 1, prob = psi)
 
-<!-- ``` -->
+```
 
-<!-- ```{r} -->
-<!-- #| echo: false -->
-<!-- #| label: fig-occ-state -->
-<!-- #| fig-cap: Simulated occupancy probabilities and true presence/absence state -->
-<!-- plot_data = customGrid -->
-<!-- plot_data$z = z -->
-<!-- plot_data$psi = psi -->
-<!-- ggplot() + geom_sf(data= plot_data,aes(fill=psi))+ scale_fill_scico(palette = 'roma',name='Occupancy \n probabilities')+theme(legend.position = 'top')+ -->
-<!-- ggplot() +  geom_sf(data= plot_data,aes(fill=factor(z))) + scale_fill_viridis_d(name='Occupancy \n state',label=c('Absence','Presence'))+theme(legend.position = 'top') -->
+```{r}
+#| echo: false
+#| label: fig-occ-state
+#| fig-cap: Simulated occupancy probabilities and true presence/absence state
+plot_data = customGrid
+plot_data$z = z
+plot_data$psi = psi
+ggplot() + geom_sf(data= plot_data,aes(fill=psi))+ scale_fill_scico(palette = 'roma',name='Occupancy \n probabilities')+theme(legend.position = 'top')+
+ggplot() +  geom_sf(data= plot_data,aes(fill=factor(z))) + scale_fill_viridis_d(name='Occupancy \n state',label=c('Absence','Presence'))+theme(legend.position = 'top')
 
-<!--  rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],psi)) |> -->
-<!-- writeRaster(filename = paste('raster data','true_occ_probs.tif',sep='/'), -->
-<!--             overwrite=TRUE) -->
-<!-- ``` -->
+ rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],psi)) |>
+writeRaster(filename = paste('raster data','true_occ_probs.tif',sep='/'),
+            overwrite=TRUE)
+```
 
-<!-- ## Observational process model sub-component -->
+## Observational process model sub-component
 
-<!-- Random sample of 20 % of the total cells and draw a random number of $K$ visits per cell by setting a minimum of 1 and a maximum of 5 visits per site/cell. -->
+Random sample of 20 % of the total cells and draw a random number of $K$ visits per cell by setting a minimum of 1 and a maximum of 5 visits per site/cell.
 
-<!-- ```{r} -->
+```{r}
 
-<!-- # number of cells/sites in the sample -->
-<!-- nsites = round(ncells*.20)  -->
-<!-- site_id = sample(1:ncells, size=nsites, replace=FALSE) # cell id -->
-<!-- # add an indicator of whether a cell is in the sample or not -->
-<!-- customGrid$sample <- ifelse(customGrid$cellid%in%site_id,1,0) -->
+# number of cells/sites in the sample
+nsites = round(ncells*.20)
+site_id = sample(1:ncells, size=nsites, replace=FALSE) # cell id
+# add an indicator of whether a cell is in the sample or not
+customGrid$sample <- ifelse(customGrid$cellid%in%site_id,1,0)
 
-<!-- min_nvisits = 1 # minimum number of visits -->
-<!-- max_nvisits = 5 # maximum number of visits -->
-<!-- # Probabiliies of drawing 1 thru 5 visits per site -->
-<!-- probs = rep(1/length(min_nvisits:max_nvisits),length(min_nvisits:max_nvisits)) -->
-<!-- # Number of visits -->
-<!-- nvisits = sample(min_nvisits:max_nvisits,nsites, prob = probs, replace = T) -->
-<!-- ``` -->
+min_nvisits = 1 # minimum number of visits
+max_nvisits = 5 # maximum number of visits
+# Probabiliies of drawing 1 thru 5 visits per site
+probs = rep(1/length(min_nvisits:max_nvisits),length(min_nvisits:max_nvisits))
+# Number of visits
+nvisits = sample(min_nvisits:max_nvisits,nsites, prob = probs, replace = T)
+```
 
-<!-- Define model parameters $\alpha$ , detection probabilities $p$ and observed number of occurrences per site $y$ (@fig-obs_occ): -->
+Define model parameters $\alpha$ , detection probabilities $p$ and observed number of occurrences per site $y$ (@fig-obs_occ):
 
-<!-- ```{r} -->
-<!-- # Observational process model coeficcients -->
-<!-- alpha <- c(NA,NA) -->
-<!-- alpha[1] <- qlogis(0.6) # Base line detection probability -->
-<!-- alpha[2] <- 1 # detection covariate effect -->
+```{r}
+# Observational process model coeficcients
+alpha <- c(NA,NA)
+alpha[1] <- qlogis(0.6) # Base line detection probability
+alpha[2] <- 1 # detection covariate effect
 
-<!-- # Detection probabilities -->
-<!-- p <- inla.link.logit(alpha[1] + alpha[2]*g_s[site_id], inverse = T)  -->
-<!-- y <- rbinom(n = nsites,size = nvisits,prob = p*z[site_id] ) -->
+# Detection probabilities
+p <- inla.link.logit(alpha[1] + alpha[2]*g_s[site_id], inverse = T)
+y <- rbinom(n = nsites,size = nvisits,prob = p*z[site_id] )
 
-<!-- ``` -->
+```
 
-<!-- Create data set @tbl-t1: -->
+Create data set @tbl-t1:
 
-<!-- ```{r} -->
-<!-- #| warning: false -->
-<!-- # centroid of the cell -->
+```{r}
+#| warning: false
+# centroid of the cell
 
-<!-- Occ_data_1 <- customGrid |> -->
-<!--   st_centroid() |> -->
-<!--   filter(sample==1) |> -->
-<!--   dplyr::select(-c('sample')) -->
+Occ_data_1 <- customGrid |>
+  st_centroid() |>
+  filter(sample==1) |>
+  dplyr::select(-c('sample'))
 
-<!-- y_counts = data.frame(y = y , cellid = site_id, nvisits = nvisits) -->
+y_counts = data.frame(y = y , cellid = site_id, nvisits = nvisits)
 
-<!-- Occ_data_1 <- left_join(Occ_data_1,y_counts,by = "cellid") -->
+Occ_data_1 <- left_join(Occ_data_1,y_counts,by = "cellid")
 
-<!-- # append coordinates as columns -->
+# append coordinates as columns
 
-<!-- Occ_data_1[,c('x.loc','y.loc')] <- st_coordinates(Occ_data_1) -->
-<!-- Occ_data_1 = st_drop_geometry(Occ_data_1) -->
-<!-- # Save CSV file for analysis -->
-<!-- write.csv(Occ_data_1,file='Occ_data_1.csv',row.names = F) -->
+Occ_data_1[,c('x.loc','y.loc')] <- st_coordinates(Occ_data_1)
+Occ_data_1 = st_drop_geometry(Occ_data_1)
+# Save CSV file for analysis
+write.csv(Occ_data_1,file='Occ_data_1.csv',row.names = F)
 
-<!-- ``` -->
+```
 
-<!-- ```{r} -->
-<!-- #| echo: false -->
-<!-- #| label: tbl-t1 -->
-<!-- #| tbl-cap: First 6 entries of the occupancy data -->
+```{r}
+#| echo: false
+#| label: tbl-t1
+#| tbl-cap: First 6 entries of the occupancy data
 
-<!-- Occ_data_1 |> -->
-<!--   head(n=6) |> -->
-<!--  knitr:: kable() -->
+Occ_data_1 |>
+  head(n=6) |>
+ knitr:: kable()
 
-<!-- ``` -->
+```
 
-<!-- ```{r} -->
-<!-- #| echo: false -->
-<!-- #| label: fig-obs_occ -->
-<!-- #| fig-cap: Number of times species was detected at sampled sites and true occupancy state. -->
-<!-- #| fig-height: 5 -->
-<!-- #| fig-width: 5 -->
+```{r}
+#| echo: false
+#| label: fig-obs_occ
+#| fig-cap: Number of times species was detected at sampled sites and true occupancy state.
+#| fig-height: 5
+#| fig-width: 5
 
-<!-- plot_data$sample = ifelse(customGrid$cellid%in%site_id,1,0) -->
-<!-- plot_data[which(plot_data$sample==1),'prop'] = ifelse(y>1,1,0) -->
-<!-- plot_data$gs =g_s -->
+plot_data$sample = ifelse(customGrid$cellid%in%site_id,1,0)
+plot_data[which(plot_data$sample==1),'prop'] = ifelse(y>1,1,0)
+plot_data$gs =g_s
 
-<!-- # ggplot() + #geom_sf(data= plot_data,aes(fill=g_s),alpha=0.2) +  -->
-<!-- #   #scale_fill_viridis(option='magma',name=expression(g(s))) + -->
-<!-- #   #ggnewscale::new_scale_fill() +  -->
-<!-- #   geom_sf(data= plot_data|> filter(sample==1),aes(fill=as.factor(prop))) + scale_fill_scico_d(palette = 'imola') -->
-<!-- # #(palette = 'imola',direction = -1,name='Counts') -->
+# ggplot() + #geom_sf(data= plot_data,aes(fill=g_s),alpha=0.2) +
+#   #scale_fill_viridis(option='magma',name=expression(g(s))) +
+#   #ggnewscale::new_scale_fill() +
+#   geom_sf(data= plot_data|> filter(sample==1),aes(fill=as.factor(prop))) + scale_fill_scico_d(palette = 'imola')
+# #(palette = 'imola',direction = -1,name='Counts')
 
-<!--  Occ_data1_plot = Occ_data_1 |> -->
-<!--   st_as_sf(coords = c('x.loc','y.loc'))  -->
+ Occ_data1_plot = Occ_data_1 |>
+  st_as_sf(coords = c('x.loc','y.loc'))
 
-<!-- ggplot() + geom_sf(data= plot_data,aes(fill=factor(z)),alpha=0.65) + -->
-<!--   scale_fill_manual(name='Occupancy \n state',label=c('Absence','Presence'),values=c("black","#C4961A"))+ -->
-<!--   geom_sf(data=Occ_data1_plot,aes(color=y),size=0.8) + -->
-<!--   scale_color_scico( name="Observed \n counts",palette = "lajolla") -->
+ggplot() + geom_sf(data= plot_data,aes(fill=factor(z)),alpha=0.65) +
+  scale_fill_manual(name='Occupancy \n state',label=c('Absence','Presence'),values=c("black","#C4961A"))+
+  geom_sf(data=Occ_data1_plot,aes(color=y),size=0.8) +
+  scale_color_scico( name="Observed \n counts",palette = "lajolla")
 
-<!-- ``` -->
+```
 
-<!-- # Simulate space-time occupancy data {#sec-STOM} -->
+# Simulate space-time occupancy data {#sec-STOM}
 
-<!-- Here we simulate data for a space-time occupancy model by defining a SPDE for the spatial domain and an autoregressive model of order 1, i.e. AR(1), for the time component (this is separable space-time model where the spatio-temporal covariance is defined by the Kronecker product of the covariances of the spatial and temporal random effects, see [@cameletti2012] for more details). -->
+Here we simulate data for a space-time occupancy model by defining a SPDE for the spatial domain and an autoregressive model of order 1, i.e. AR(1), for the time component (this is separable space-time model where the spatio-temporal covariance is defined by the Kronecker product of the covariances of the spatial and temporal random effects, see [@cameletti2012] for more details).
 
-<!-- We set a total of `nT = 5` discrete time points where the occupancy state changes. We can use the `book.rspde()` function available in the `spde-book-functions.R` file [@krainski2018] to simulate $t = 1,\ldots,nT$ independent realizations of the random field[^1]. Then, temporal correlation is introduced: -->
+We set a total of `nT = 5` discrete time points where the occupancy state changes. We can use the `book.rspde()` function available in the `spde-book-functions.R` file [@krainski2018] to simulate $t = 1,\ldots,nT$ independent realizations of the random field[^1]. Then, temporal correlation is introduced:
 
-<!-- [^1]: Note: If you are using INLA development version you might need modify the `book.rspde function`. Specifically, change the `inla.mesh.project` function to `fmesher::fm_evaluator` function to project the mesh into the domain coordinates. -->
+[^1]: Note: If you are using INLA development version you might need modify the `book.rspde function`. Specifically, change the `inla.mesh.project` function to `fmesher::fm_evaluator` function to project the mesh into the domain coordinates.
 
-<!-- $$ -->
-<!-- \omega(s_i,t) = \rho \ \omega(s_i,t-1) + \epsilon(s_i,t), -->
-<!-- $$ -->
+$$
+\omega(s_i,t) = \rho \ \omega(s_i,t-1) + \epsilon(s_i,t),
+$$
 
-<!-- where $\pmb{\epsilon} \sim N(0,\Sigma = \sigma_{\epsilon}^2\tilde{\Sigma})$ are the spatially correlated random effects with Matérn correlation function $\tilde{\Sigma}$ and $\rho=0.7$ is the autoregressive parameter ($\sqrt{1-\rho^2}$ is included so $\omega(s_i,1)$ comes from a $N(0,\Sigma/(1-\rho^2)$ stationary distribution; see [@cameletti2012]). -->
+where $\pmb{\epsilon} \sim N(0,\Sigma = \sigma_{\epsilon}^2\tilde{\Sigma})$ are the spatially correlated random effects with Matérn correlation function $\tilde{\Sigma}$ and $\rho=0.7$ is the autoregressive parameter ($\sqrt{1-\rho^2}$ is included so $\omega(s_i,1)$ comes from a $N(0,\Sigma/(1-\rho^2)$ stationary distribution; see [@cameletti2012]).
 
-<!-- ```{r} -->
-<!-- #| message: false -->
-<!-- #| warning: false -->
+```{r}
+#| message: false
+#| warning: false
 
-<!-- # load helping functions -->
+# load helping functions
 
-<!-- source('spde-book-functions.R') -->
+source('spde-book-functions.R')
 
-<!-- # Time points -->
-<!-- nT = 5 -->
-<!-- # parameters of the Matern -->
+# Time points
+nT = 5
+# parameters of the Matern
 
 
-<!-- # Create a fine mesh  -->
-<!-- mesh_sim = fm_mesh_2d(loc.domain = st_coordinates(boundary_sf)[,1:2], -->
-<!--                         offset = c(-0.1, -.2), -->
-<!--                         max.edge = c(4, 50)) -->
-<!-- # Matern model -->
-<!-- params <- c(sigma = sigma_spde, range = range_spde)  -->
+# Create a fine mesh
+mesh_sim = fm_mesh_2d(loc.domain = st_coordinates(boundary_sf)[,1:2],
+                        offset = c(-0.1, -.2),
+                        max.edge = c(4, 50))
+# Matern model
+params <- c(sigma = sigma_spde, range = range_spde)
 
-<!-- # generate samples from the random field  -->
+# generate samples from the random field
 
-<!-- epsilon.t <- book.rspde(coord_grid, range = params[2], seed = seed, -->
-<!--                   sigma = params[1], n = nT, mesh = mesh_sim, -->
-<!--                   return.attributes = TRUE) -->
+epsilon.t <- book.rspde(coord_grid, range = params[2], seed = seed,
+                  sigma = params[1], n = nT, mesh = mesh_sim,
+                  return.attributes = TRUE)
 
-<!-- # temporal dependency -->
-<!-- rho <- 0.65 -->
+# temporal dependency
+rho <- 0.65
 
-<!-- omega_st <- epsilon.t -->
+omega_st <- epsilon.t
 
-<!-- for (t in 2:nT){ -->
-<!--   omega_st[, t] <- rho * omega_st[, t - 1] + sqrt(1 - rho^2) * epsilon.t[, t] -->
-<!-- }  -->
+for (t in 2:nT){
+  omega_st[, t] <- rho * omega_st[, t - 1] + sqrt(1 - rho^2) * epsilon.t[, t]
+}
 
-<!-- ``` -->
+```
 
-<!-- ```{r} -->
-<!-- #| echo: false -->
-<!-- #| label: fig-space_time_effect -->
-<!-- #| fig-cap: simulated spatio-temporal Gaussian field -->
+```{r}
+#| echo: false
+#| label: fig-space_time_effect
+#| fig-cap: simulated spatio-temporal Gaussian field
 
-<!-- spatio_temp_field= rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],omega_st[, 1])) -->
+spatio_temp_field= rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],omega_st[, 1]))
 
-<!-- for( t in 2:nT){ -->
-<!--    spatio_temp_field = c(spatio_temp_field,rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],omega_st[, t]))) -->
-<!-- } -->
-<!-- names(spatio_temp_field) <- paste('time',1:nT,sep=' ') -->
-<!-- ggplot() + tidyterra::geom_spatraster(data=spatio_temp_field) + -->
-<!--    facet_wrap(~lyr, ncol = 3) + scale_fill_scico(name=expression(omega(i,t))) -->
+for( t in 2:nT){
+   spatio_temp_field = c(spatio_temp_field,rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],omega_st[, t])))
+}
+names(spatio_temp_field) <- paste('time',1:nT,sep=' ')
+ggplot() + tidyterra::geom_spatraster(data=spatio_temp_field) +
+   facet_wrap(~lyr, ncol = 3) + scale_fill_scico(name=expression(omega(i,t)))
 
-<!-- ``` -->
+```
 
-<!-- Then we can simulate the occupancy state of cell $i$ at time $t$ (@fig-space-time-occ) as follows: -->
+Then we can simulate the occupancy state of cell $i$ at time $t$ (@fig-space-time-occ) as follows:
 
-<!-- ```{=tex} -->
-<!-- \begin{align}z_{it}&\sim \mathrm{Bernoulli}(\psi_{it})\nonumber\\\mathrm{logit}(\psi_{it}) &= \beta_0 + \beta_1\ x_i + \beta_2 x^2_i + \omega_{it}.\end{align} -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- # State process model coeficcients -->
-<!-- beta <- c(NA,NA,NA) -->
-<!-- beta[1] <- qlogis(0.2) # Base line occupancy probability -->
-<!-- beta[2] <- 0.75 # environmental covariate effect -->
-<!-- beta[3] <- 1 # environmental covariate quadratic effect -->
+```{=tex}
+\begin{align}z_{it}&\sim \mathrm{Bernoulli}(\psi_{it})\nonumber\\\mathrm{logit}(\psi_{it}) &= \beta_0 + \beta_1\ x_i + \beta_2 x^2_i + \omega_{it}.\end{align}
+```
+```{r}
+# State process model coeficcients
+beta <- c(NA,NA,NA)
+beta[1] <- qlogis(0.2) # Base line occupancy probability
+beta[2] <- 0.75 # environmental covariate effect
+beta[3] <- 1 # environmental covariate quadratic effect
 
-<!-- z.mat = psi.mat = matrix(NA,ncol=nT,nrow=dim(coord_grid)[1]) -->
+z.mat = psi.mat = matrix(NA,ncol=nT,nrow=dim(coord_grid)[1])
 
-<!-- for(t in 1:nT){ -->
-<!--   # Occupancy probabilities -->
-<!--   psi.mat[,t] = inla.link.logit(beta[1] + beta[2]*x_s + beta[3]*x_s**2 + omega_st[,t], inverse = T)  -->
-<!--   # True occupancy state  -->
-<!--   z.mat[,t] <- rbinom(ncells, size = 1, prob = psi.mat[,t]) -->
-<!-- } -->
+for(t in 1:nT){
+  # Occupancy probabilities
+  psi.mat[,t] = inla.link.logit(beta[1] + beta[2]*x_s + beta[3]*x_s**2 + omega_st[,t], inverse = T)
+  # True occupancy state
+  z.mat[,t] <- rbinom(ncells, size = 1, prob = psi.mat[,t])
+}
 
-<!-- ``` -->
+```
 
-<!-- ```{r} -->
-<!-- #| echo: false -->
-<!-- #| label: fig-space-time-occ -->
-<!-- #| fig-cap: Simulated occupancy probabilities -->
+```{r}
+#| echo: false
+#| label: fig-space-time-occ
+#| fig-cap: Simulated occupancy probabilities
 
-<!-- spatio_temp_psi= rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],psi.mat[, 1])) -->
+spatio_temp_psi= rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],psi.mat[, 1]))
 
-<!-- for( t in 2:nT){ -->
-<!--    spatio_temp_psi = c(spatio_temp_psi,rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],psi.mat[, t]))) -->
-<!-- } -->
-<!-- names(spatio_temp_psi) <- paste('time',1:nT,sep=' ') -->
-<!-- ggplot() + tidyterra::geom_spatraster(data=spatio_temp_psi) + -->
-<!--    facet_wrap(~lyr, ncol = 3) + scale_fill_scico(name=expression(psi(i,t)),palette = 'roma',direction = -1) -->
+for( t in 2:nT){
+   spatio_temp_psi = c(spatio_temp_psi,rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],psi.mat[, t])))
+}
+names(spatio_temp_psi) <- paste('time',1:nT,sep=' ')
+ggplot() + tidyterra::geom_spatraster(data=spatio_temp_psi) +
+   facet_wrap(~lyr, ncol = 3) + scale_fill_scico(name=expression(psi(i,t)),palette = 'roma',direction = -1)
 
-<!-- spatio_temp_psi |> -->
-<!-- writeRaster(filename = paste('raster data','spatsat_occ_probs.tif',sep='/'), -->
-<!--             overwrite=TRUE) -->
-<!-- ``` -->
+spatio_temp_psi |>
+writeRaster(filename = paste('raster data','spatsat_occ_probs.tif',sep='/'),
+            overwrite=TRUE)
+```
 
-<!-- Notice that we can use different locations at different times, e.g. when locations are not surveyed regularly. To simulate this we allow for some sites to be missing from the sample across years, by setting the minimum number of visits to zero . We also change the number of visits per year/site combination. -->
+Notice that we can use different locations at different times, e.g. when locations are not surveyed regularly. To simulate this we allow for some sites to be missing from the sample across years, by setting the minimum number of visits to zero . We also change the number of visits per year/site combination.
 
-<!-- ```{r} -->
+```{r}
 
-<!-- min_nvisits = 0 # minimum number of visits -->
-<!-- max_nvisits = 5 # maximum number of visits -->
-<!-- # Probabiliies of drawing 1 thru 5 visits per site -->
-<!-- probs = rep(1/length(min_nvisits:max_nvisits),length(min_nvisits:max_nvisits)) -->
-<!-- # Number of visits per site/year combination -->
-<!-- nvisits.mat = matrix(NA,ncol=nT,nrow=nsites) # empty matrix to store the results -->
+min_nvisits = 0 # minimum number of visits
+max_nvisits = 5 # maximum number of visits
+# Probabiliies of drawing 1 thru 5 visits per site
+probs = rep(1/length(min_nvisits:max_nvisits),length(min_nvisits:max_nvisits))
+# Number of visits per site/year combination
+nvisits.mat = matrix(NA,ncol=nT,nrow=nsites) # empty matrix to store the results
 
-<!-- for(t in 1:nT){ -->
-<!--   nvisits.mat[,t] = sample(min_nvisits:max_nvisits,nsites, -->
-<!--                            prob = probs, replace = T) -->
-<!-- } -->
+for(t in 1:nT){
+  nvisits.mat[,t] = sample(min_nvisits:max_nvisits,nsites,
+                           prob = probs, replace = T)
+}
 
-<!-- nvisits.mat[nvisits.mat==0]=NA # add NA for cells that were not visited -->
+nvisits.mat[nvisits.mat==0]=NA # add NA for cells that were not visited
 
-<!-- ``` -->
+```
 
-<!-- Now we compute the observed counts as before: -->
+Now we compute the observed counts as before:
 
-<!-- ```{r} -->
+```{r}
 
-<!-- # Observational process model coeficcients -->
-<!-- alpha <- c(NA,NA) -->
-<!-- alpha[1] <- qlogis(0.3) # Base line detection probability -->
-<!-- alpha[2] <- -1.5 # detection covariate effect -->
+# Observational process model coeficcients
+alpha <- c(NA,NA)
+alpha[1] <- qlogis(0.3) # Base line detection probability
+alpha[2] <- -1.5 # detection covariate effect
 
-<!-- y.mat = p.mat = matrix(NA,ncol=nT,nrow=nsites) -->
+y.mat = p.mat = matrix(NA,ncol=nT,nrow=nsites)
 
-<!-- for(t in 1:nT){ -->
-<!--   # Detection probabilities (constant through time) -->
-<!--   p.mat[,t] = inla.link.logit(alpha[1] + alpha[2]*g_s[site_id], inverse = T)  -->
-<!--   # Observed occurrences  -->
-<!--   y.mat[,t] <- suppressWarnings(rbinom(n = nsites, size = nvisits.mat[,t],  -->
-<!--                                        prob = p.mat[,t]* z.mat[,t])) -->
-<!-- } -->
+for(t in 1:nT){
+  # Detection probabilities (constant through time)
+  p.mat[,t] = inla.link.logit(alpha[1] + alpha[2]*g_s[site_id], inverse = T)
+  # Observed occurrences
+  y.mat[,t] <- suppressWarnings(rbinom(n = nsites, size = nvisits.mat[,t],
+                                       prob = p.mat[,t]* z.mat[,t]))
+}
 
-<!-- ``` -->
+```
 
-<!-- Finally, create and save data set. -->
+Finally, create and save data set.
 
-<!-- ```{r} -->
+```{r}
 
-<!-- # centroid of the cell -->
-<!-- Occ_data_2 <- suppressWarnings(customGrid |> -->
-<!--                                  st_centroid()) |> -->
-<!--   filter(sample==1) |> -->
-<!--   dplyr::select(-c('sample')) -->
+# centroid of the cell
+Occ_data_2 <- suppressWarnings(customGrid |>
+                                 st_centroid()) |>
+  filter(sample==1) |>
+  dplyr::select(-c('sample'))
 
-<!-- # Add data -->
-<!-- Occ_data_2[,paste('y',1:nT,sep='')] = y.mat # counts -->
-<!-- Occ_data_2[,paste('nvisit',1:nT,sep='')] = nvisits.mat # visits per year -->
+# Add data
+Occ_data_2[,paste('y',1:nT,sep='')] = y.mat # counts
+Occ_data_2[,paste('nvisit',1:nT,sep='')] = nvisits.mat # visits per year
 
-<!-- # append coordinates as columns -->
-<!-- Occ_data_2[,c('x.loc','y.loc')] <- st_coordinates(Occ_data_2) -->
-<!-- Occ_data_2 = st_drop_geometry(Occ_data_2) -->
-<!-- # Save CSV file for analysis -->
-<!-- write.csv(Occ_data_2,file='Occ_data_2.csv',row.names = F) -->
+# append coordinates as columns
+Occ_data_2[,c('x.loc','y.loc')] <- st_coordinates(Occ_data_2)
+Occ_data_2 = st_drop_geometry(Occ_data_2)
+# Save CSV file for analysis
+write.csv(Occ_data_2,file='Occ_data_2.csv',row.names = F)
 
-<!-- ``` -->
+```
 
-<!-- # Spatially varying coefficients (SVC) {#sec-SVCOM} -->
+# Spatially varying coefficients (SVC) {#sec-SVCOM}
 
-<!-- Here we simulate from a spatially varying coefficient model by adopting a space model with Matérn spatial covariance and a AR(1) time component. The same setting described for the space-time model will be used to drawn independent realization from the random field by using the `book.rMatern()`function. Then, temporal autocorrelation will be introduced to the dynamic regression coefficient $\beta_t$ through the AR(1) structure described in the previous section (Note: The term $(1 - \rho^2)$ is added because of INLA internal AR(1) model parametrization; [@krainski2018]). -->
+Here we simulate from a spatially varying coefficient model by adopting a space model with Matérn spatial covariance and a AR(1) time component. The same setting described for the space-time model will be used to drawn independent realization from the random field by using the `book.rMatern()`function. Then, temporal autocorrelation will be introduced to the dynamic regression coefficient $\beta_t$ through the AR(1) structure described in the previous section (Note: The term $(1 - \rho^2)$ is added because of INLA internal AR(1) model parametrization; [@krainski2018]).
 
-<!-- ```{r} -->
+```{r}
 
-<!-- # realization of the random field -->
-<!-- set.seed(seed) -->
-<!-- beta_t <- book.rMatern(nT, coord_grid, range = range_spde, -->
-<!--                       sigma = sigma_spde) -->
+# realization of the random field
+set.seed(seed)
+beta_t <- book.rMatern(nT, coord_grid, range = range_spde,
+                      sigma = sigma_spde)
 
-<!-- # introduce temporal correlation -->
-<!-- beta_t[, 1] <- beta_t[, 1] / (1 - rho^2) -->
+# introduce temporal correlation
+beta_t[, 1] <- beta_t[, 1] / (1 - rho^2)
 
-<!-- for (t in 2:nT) { -->
-<!--   beta_t[, t] <- beta_t[, t - 1] * rho + beta_t[, t] * -->
-<!--     (1 - rho^2) -->
-<!-- } -->
+for (t in 2:nT) {
+  beta_t[, t] <- beta_t[, t - 1] * rho + beta_t[, t] *
+    (1 - rho^2)
+}
 
-<!-- ``` -->
+```
 
-<!-- Occupancy probabilities (@fig-svc) are then defined on the logit scale as: -->
+Occupancy probabilities (@fig-svc) are then defined on the logit scale as:
 
-<!-- $$ -->
-<!-- \mathrm{logit}(\psi_{it}) = \beta_0 + \beta_{1}(i)t + \omega(i) -->
-<!-- $$ -->
+$$
+\mathrm{logit}(\psi_{it}) = \beta_0 + \beta_{1}(i)t + \omega(i)
+$$
 
-<!-- where $\omega(i)$ is the same field defined for the simple spatial occupancy model (@sec-SSOM). The detection probabilities and observed occurrences are simulated in the same way as before (see @sec-STOM). -->
+where $\omega(i)$ is the same field defined for the simple spatial occupancy model (@sec-SSOM). The detection probabilities and observed occurrences are simulated in the same way as before (see @sec-STOM).
 
-<!-- ```{r} -->
-<!-- #| warning: false -->
-<!-- #|  -->
-<!-- set.seed(seed) -->
+```{r}
+#| warning: false
+#|
+set.seed(seed)
 
-<!-- # intercept and mean of the effect -->
-<!-- beta0 <- -1 -->
+# intercept and mean of the effect
+beta0 <- -1
 
-<!-- z.mat = psi.mat = matrix(NA,ncol=nT,nrow=dim(coord_grid)[1]) -->
+z.mat = psi.mat = matrix(NA,ncol=nT,nrow=dim(coord_grid)[1])
 
-<!-- for(t in 1:nT){ -->
-<!--   # Occupancy probabilities  -->
-<!--   psi.mat[,t] = inla.link.logit(beta0 + beta_t[,t] + omega_s, inverse = T)  -->
-<!--   # True occupancy state  -->
-<!--   z.mat[,t] <- rbinom(ncells, size = 1, prob = psi.mat[,t]) -->
-<!-- } -->
+for(t in 1:nT){
+  # Occupancy probabilities
+  psi.mat[,t] = inla.link.logit(beta0 + beta_t[,t] + omega_s, inverse = T)
+  # True occupancy state
+  z.mat[,t] <- rbinom(ncells, size = 1, prob = psi.mat[,t])
+}
 
-<!-- # simulate data -->
+# simulate data
 
-<!-- for(t in 1:nT){ -->
-<!--   # Detection probabilities -->
-<!--   p.mat[,t] = inla.link.logit(alpha[1] + alpha[2]*g_s[site_id], inverse = T)  -->
-<!--   # Observed occurrences  -->
-<!--   y.mat[,t] <- rbinom(n = nsites, -->
-<!--                       size = nvisits.mat[,t], -->
-<!--                       prob = p.mat[,t]*z.mat) -->
-<!-- } -->
+for(t in 1:nT){
+  # Detection probabilities
+  p.mat[,t] = inla.link.logit(alpha[1] + alpha[2]*g_s[site_id], inverse = T)
+  # Observed occurrences
+  y.mat[,t] <- rbinom(n = nsites,
+                      size = nvisits.mat[,t],
+                      prob = p.mat[,t]*z.mat)
+}
 
 
-<!-- # centroid of the cell -->
-<!-- Occ_data_3 <- customGrid |> -->
-<!--   st_centroid() |> -->
-<!--   filter(sample==1) |> -->
-<!--   dplyr::select(-c('sample')) -->
+# centroid of the cell
+Occ_data_3 <- customGrid |>
+  st_centroid() |>
+  filter(sample==1) |>
+  dplyr::select(-c('sample'))
 
-<!-- # Add data -->
-<!-- Occ_data_3[,paste('y',1:nT,sep='')] = y.mat # counts -->
-<!-- Occ_data_3[,paste('nvisit',1:nT,sep='')] = nvisits.mat # visits per year -->
+# Add data
+Occ_data_3[,paste('y',1:nT,sep='')] = y.mat # counts
+Occ_data_3[,paste('nvisit',1:nT,sep='')] = nvisits.mat # visits per year
 
-<!-- # append coordinates as columns -->
-<!-- Occ_data_3[,c('x.loc','y.loc')] <- st_coordinates(Occ_data_3) -->
-<!-- Occ_data_3 = st_drop_geometry(Occ_data_3) -->
-<!-- # Save CSV file for analysis -->
-<!-- write.csv(Occ_data_3,file='Occ_data_3.csv',row.names = F) -->
-<!-- ``` -->
+# append coordinates as columns
+Occ_data_3[,c('x.loc','y.loc')] <- st_coordinates(Occ_data_3)
+Occ_data_3 = st_drop_geometry(Occ_data_3)
+# Save CSV file for analysis
+write.csv(Occ_data_3,file='Occ_data_3.csv',row.names = F)
+```
 
-<!-- ```{r} -->
-<!-- #| echo: false -->
-<!-- #| label: fig-svc -->
-<!-- #| fig-cap: Simulated occupancy probabilities from a SVC model -->
+```{r}
+#| echo: false
+#| label: fig-svc
+#| fig-cap: Simulated occupancy probabilities from a SVC model
 
-<!-- spatio_svc= rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],psi.mat[, 1])) -->
+spatio_svc= rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],psi.mat[, 1]))
 
-<!-- for( t in 2:nT){ -->
-<!--    spatio_svc = c(spatio_svc,rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],psi.mat[, t]))) -->
-<!-- } -->
-<!-- names(spatio_svc) <- paste('time',1:nT,sep=' ') -->
-<!-- ggplot() + tidyterra::geom_spatraster(data=spatio_svc) + -->
-<!--    facet_wrap(~lyr, ncol = 3) + scale_fill_scico(name=expression(psi(s,t)),palette = 'roma',direction = -1) -->
+for( t in 2:nT){
+   spatio_svc = c(spatio_svc,rast(data.frame(x = coord_grid[,1], y = coord_grid[,2],psi.mat[, t])))
+}
+names(spatio_svc) <- paste('time',1:nT,sep=' ')
+ggplot() + tidyterra::geom_spatraster(data=spatio_svc) +
+   facet_wrap(~lyr, ncol = 3) + scale_fill_scico(name=expression(psi(s,t)),palette = 'roma',direction = -1)
 
-<!-- spatio_svc |> -->
-<!-- writeRaster(filename = paste('raster data','spatio_svc_probs.tif',sep='/'), -->
-<!--             overwrite=TRUE) -->
-<!-- ``` -->
+spatio_svc |>
+writeRaster(filename = paste('raster data','spatio_svc_probs.tif',sep='/'),
+            overwrite=TRUE)
+```
